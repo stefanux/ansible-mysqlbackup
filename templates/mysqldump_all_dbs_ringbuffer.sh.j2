@@ -1,0 +1,37 @@
+#!/bin/bash
+# === SQL-Dumps ===
+# Passwort muss in .my.cnf stehen!
+# siehe: http://dev.mysql.com/doc/refman/5.0/en/password-security.html
+#
+#[client]
+#user="backup"
+#password="secret"
+
+umask 077
+i=0
+e=0
+
+mysqldump_extra_file="{{ mysql_mysqldump_backup_cred_file }}"
+target_path="{{ mysql_mysqldump_directory_ringbuffer }}"
+
+datestring=$(date +%Y-%m-%d)
+
+# deleting sql-dumps older than x days:
+find "$target_path"/*.sql -mtime +{{ mysql_mysqldump_ringbuffer_retention_days }} -exec rm {} \; 2> /dev/null
+find "$target_path"/*.sql.gz -mtime +10 -exec rm {} \; 2> /dev/null
+
+for x in $(mysql --defaults-extra-file="$mysqldump_extra_file" -Bse 'show databases'); do
+  # echo "dumping Database $x"
+  # mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --add-drop-table $x > "$target_path"/DB-Backup-${datestring}-${x}.sql 2> /dev/null
+  # gzipped:
+  mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --add-drop-table $x |gzip 2> /dev/null > "$target_path"/DB-Backup-${datestring}-${x}.sql.gz
+  if [ $? -ne 0 ]; then
+    let e=$e+1
+  fi
+  let i=$i+1
+done
+
+if [ $e -gt 0 ]; then
+  echo "Errors on $e out of $i databases."
+  exit 1
+fi

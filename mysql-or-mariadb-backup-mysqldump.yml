@@ -1,0 +1,4 @@
+# ansible-playbook -i hosts zabbix/mysql_checks.yml --ask-vault-pass --limit=Host
+# - hosts: all
+- hosts: mysql_servers
+  roles: stefanux.mysqlbackup

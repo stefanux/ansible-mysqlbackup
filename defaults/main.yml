@@ -1,0 +1,23 @@
+---
+mysql_mycnf_file: "/root/.my.cnf"
+mysql_mysqldump_user_name: "backup"
+# mysql_mysqldump_user_password: ""
+mysql_mysqldump_directory: "/srv/sql-backup"
+mysql_mysqldump_alldb_gzip: False
+# mysql_mysqldump_alldb_filename: "sqldump_alldbs.sql.gz"
+mysql_mysqldump_alldb_filename: "sqldump_alldbs.sql"
+mysql_mysqldump_directory_alldbs: "{{ mysql_mysqldump_directory }}"
+mysql_mysqldump_directory_ringbuffer: "{{ mysql_mysqldump_directory }}/ringbuffer"
+mysql_mysqldump_shellscript_alldbs: "mysqldump_alldbs.sh"
+mysql_mysqldump_shellscript_ringbuffer: "mysqldump_alldb_plus_singleDBs_ringbuffer.sh"
+mysql_mysqldump_fullpath_alldbs: "{{ mysql_mysqldump_directory }}/{{ mysql_mysqldump_shellscript_alldbs }}"
+mysql_mysqldump_fullpath_ringbuffer: "{{ mysql_mysqldump_directory_ringbuffer }}/{{ mysql_mysqldump_shellscript_ringbuffer }}"
+mysql_mysqldump_cronjob_alldbs_create: False
+mysql_mysqldump_cronjob_ringbuffer_create: True
+mysql_mysqldump_cronjob_alldbs_dest: "/etc/cron.daily/mysql_mysqldump_alldbs"
+mysql_mysqldump_cronjob_alldbs_template: "mysqldump_cronjob_alldbs.j2"
+mysql_mysqldump_cronjob_ringbuffer_dest: "/etc/cron.daily/mysql_mysqldump_ringbuffer"
+mysql_mysqldump_cronjob_ringbuffer_template: "mysqldump_cronjob_ringbuffer.j2"
+mysql_mysqldump_backup_cred_file: "{{ mysql_mysqldump_directory }}/backup_my.cnf"
+mysql_mysqldump_backup_cred_file_overwrite: False
+mysql_mysqldump_ringbuffer_retention_days: 10

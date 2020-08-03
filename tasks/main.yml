@@ -1,0 +1,203 @@
+  - name: Determine MySQL/MariaDB Version
+    command: mysql --version
+    register: mysql_version
+    changed_when: false
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Check if mysql_mycnf_file file exists
+    stat:
+      path: "{{ mysql_mycnf_file }}"
+    register: mysql_mycnf_file
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Fail if mysql_mycnf_file is missing
+    fail:
+      msg: "Config {{ mysql_mycnf_file }} is missing. aborting."
+    when:
+    - not mysql_mycnf_file.stat.exists
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Check if mysql_mysqldump_backup_cred_file file exists
+    stat:
+      path: "{{ mysql_mysqldump_backup_cred_file }}"
+    register: mysql_mysqldump_backup_cred_file_exists
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Generate password
+    set_fact:
+      mysql_mysqldump_user_password: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
+    no_log: True
+    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  # 2 tasks from geerlingguy.mysql
+  - name: Determine required MySQL Python libraries.
+    set_fact:
+      deb_mysql_python_package: "{% if 'python3' in ansible_python_interpreter|default('') %}python3-mysqldb{% else %}python-mysqldb{% endif %}"
+    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Ensure MySQL Python libraries are installed.
+    apt: "name={{ deb_mysql_python_package }} state=present"
+    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Create MySQL backup user
+    # needs python-mysqldb or python3-mysqldb
+    mysql_user:
+      config_file: "{{ mysql_mycnf_file }}"
+      name: "{{ mysql_mysqldump_user_name }}"
+      host: "localhost"
+      password: "{{ mysql_mysqldump_user_password }}"
+      priv: "*.*:SELECT,FILE,LOCK TABLES"
+      state: "present"
+      append_privs: "yes"
+      encrypted: "no"
+    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    # no_log: true
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Create mysqldump directory if it does not exist
+    file:
+      path: "{{ mysql_mysqldump_directory }}"
+      owner: "root"
+      group: "root"
+      state: directory
+      mode: '0700'
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - scripts
+    - user
+
+  - name: Create mysqldump directory if it does not exist (alldbs)
+    file:
+      path: "{{ mysql_mysqldump_directory_alldbs }}"
+      owner: "root"
+      group: "root"
+      state: directory
+      mode: '0700'
+    tags:
+    - alldbs
+    - check
+
+  - name: Create mysqldump directory if it does not exist (ringbuffer)
+    file:
+      path: "{{ mysql_mysqldump_directory_ringbuffer }}"
+      owner: "root"
+      group: "root"
+      state: directory
+      mode: '0700'
+    tags:
+    - ringbuffer
+    - scripts
+
+  - name: Copy mysql_mysqldump_backup_cred_file with credentials
+    template:
+      src: "mysqldump_my.cnf.j2"
+      dest: "{{ mysql_mysqldump_backup_cred_file }}"
+      owner: "root"
+      group: "root"
+      mode: '0600'
+    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Copy mysqldump shellscript (all DBs)
+    template:
+      src: "mysqldump_alldbs.sh.j2"
+      dest: "{{ mysql_mysqldump_fullpath_alldbs }}"
+      owner: "root"
+      group: "root"
+      mode: '0700'
+    tags:
+    - alldbs
+    - scripts
+
+  - name: Copy mysqldump shellscript (ringbuffer)
+    template:
+      src: "mysqldump_alldbs_ringbuffer.sh.j2"
+      dest: "{{ mysql_mysqldump_fullpath_ringbuffer }}"
+      owner: "root"
+      group: "root"
+      mode: '0700'
+    tags:
+    - alldbs
+    - scripts
+
+  - name: Create mysqldump cronjob (all DBs)
+    template:
+      src: "mysqldump_cronjob_alldbs.j2"
+      dest: "{{ mysql_mysqldump_cronjob_alldbs }}"
+      owner: "root"
+      group: "root"
+      mode: '0755'
+    when: mysql_mysqldump_cronjob_alldbs_create
+    tags:
+    - alldbs
+    - cronjob
+
+  - name: Create mysqldump cronjob (ringbuffer)
+    template:
+      src: "{{ mysql_mysqldump_cronjob_ringbuffer_template }}"
+      dest: "{{ mysql_mysqldump_cronjob_ringbuffer_dest }}"
+      owner: "root"
+      group: "root"
+      mode: '0755'
+    when: mysql_mysqldump_cronjob_ringbuffer_create
+    tags:
+    - cronjob
+    - ringbuffer
+
+  - name: Check if credentials are working for mysqldump
+    command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" -hlocalhost -P3306 ping
+    register: mysqladmin_output
+    changed_when: False
+    check_mode: yes
+    tags:
+    - check
+    - user
+
+  - name: Check if credentials are working for mysqldump (output)
+    debug: msg="{{ mysql_version }} status is {{ mysqladmin_output }}"
+    # should be "mysqld is alive"
+    tags:
+    - check
+    - user
+
