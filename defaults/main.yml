@@ -21,3 +21,4 @@ mysql_mysqldump_cronjob_ringbuffer_template: "mysqldump_cronjob_ringbuffer.j2"
 mysql_mysqldump_backup_cred_file: "{{ mysql_mysqldump_directory }}/backup_my.cnf"
 mysql_mysqldump_backup_cred_file_overwrite: False
 mysql_mysqldump_ringbuffer_retention_days: 10
+mysql_mysqldump_fail_if_mycnf_file_missing: False

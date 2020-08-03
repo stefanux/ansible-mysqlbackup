@@ -23,6 +23,7 @@
       msg: "Config {{ mysql_mycnf_file }} is missing. aborting."
     when:
     - not mysql_mycnf_file.stat.exists
+    - mysql_mysqldump_fail_if_mycnf_file_missing
     tags:
     - alldbs
     - check
