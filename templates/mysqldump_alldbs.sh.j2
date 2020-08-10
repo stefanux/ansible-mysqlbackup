@@ -8,13 +8,13 @@
 #user="backup"
 #password="secret"
 
-set -euxo pipefail
+set -euo pipefail
 
 umask 077
 
 mysqldump_extra_file="{{ mysql_mysqldump_backup_cred_file }}"
 target_path="{{ mysql_mysqldump_directory_alldbs }}"
-all_db_filename="{{ mysql_mysqldump_all_db_filename }}"
+all_db_filename="{{ mysql_mysqldump_alldb_filename }}"
 
 
 {% if mysql_mysqldump_alldb_gzip %}
