@@ -83,7 +83,7 @@
       append_privs: "yes"
       encrypted: "no"
     when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
-    # no_log: true
+    no_log: true
     tags:
     - alldbs
     - check
@@ -114,6 +114,7 @@
     tags:
     - alldbs
     - check
+    - scripts
 
   - name: Create mysqldump directory if it does not exist (ringbuffer)
     file:
@@ -164,8 +165,8 @@
 
   - name: Create mysqldump cronjob (all DBs)
     template:
-      src: "mysqldump_cronjob_alldbs.j2"
-      dest: "{{ mysql_mysqldump_cronjob_alldbs }}"
+      src: "{{ mysql_mysqldump_cronjob_alldbs_template }}"
+      dest: "{{ mysql_mysqldump_cronjob_alldbs_dest }}"
       owner: "root"
       group: "root"
       mode: '0755'
