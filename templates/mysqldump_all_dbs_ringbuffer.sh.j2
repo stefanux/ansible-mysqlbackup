@@ -14,7 +14,7 @@ e=0
 mysqldump_extra_file="{{ mysql_mysqldump_backup_cred_file }}"
 target_path="{{ mysql_mysqldump_directory_ringbuffer }}"
 
-datestring=$(date +%Y-%m-%d)
+datestring=$(date +%Y-%m-%d-%H:%M)
 
 # deleting sql-dumps older than x days:
 find "$target_path"/*.sql -mtime +{{ mysql_mysqldump_ringbuffer_retention_days }} -exec rm {} \; 2> /dev/null
