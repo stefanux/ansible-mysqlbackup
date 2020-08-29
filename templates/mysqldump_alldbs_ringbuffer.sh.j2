@@ -20,11 +20,21 @@ datestring=$(date +%Y-%m-%d-%H:%M)
 find "$target_path"/*.sql -mtime +{{ mysql_mysqldump_ringbuffer_retention_days }} -exec rm {} \; 2> /dev/null
 find "$target_path"/*.sql.gz -mtime +10 -exec rm {} \; 2> /dev/null
 
-for x in $(mysql --defaults-extra-file="$mysqldump_extra_file" -Bse 'show databases'); do
+{% if mysql_mysqldump_connect_method == "socket" %}
+for x in $(mysql --defaults-extra-file="$mysqldump_extra_file" --protocol=SOCKET -Bse 'show databases'); do
+{% endif %}
+{% if mysql_mysqldump_connect_method == "tcp" %}
+for x in $(mysql --defaults-extra-file="$mysqldump_extra_file" --protocol=TCP -h {{ mysql_mysqldump_connect_ip }} -Bse 'show databases'); do
+{% endif %}
   # echo "dumping Database $x"
   # mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --add-drop-table $x > "$target_path"/DB-Backup-${datestring}-${x}.sql 2> /dev/null
   # gzipped:
-  mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --add-drop-table $x |gzip 2> /dev/null > "$target_path"/DB-Backup-${datestring}-${x}.sql.gz
+  {% if mysql_mysqldump_connect_method == "socket" %}
+  mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --add-drop-table $x --protocol=SOCKET |gzip 2> /dev/null > "$target_path"/DB-Backup-${datestring}-${x}.sql.gz
+  {% endif %}
+  {% if mysql_mysqldump_connect_method == "tcp" %}
+  mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --add-drop-table $x --protocol=TCP -h {{ mysql_mysqldump_connect_ip }} |gzip 2> /dev/null > "$target_path"/DB-Backup-${datestring}-${x}.sql.gz
+  {% endif %}
   if [ $? -ne 0 ]; then
     let e=$e+1
   fi
