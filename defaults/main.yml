@@ -14,7 +14,7 @@ mysql_mysqldump_fullpath_alldbs: "{{ mysql_mysqldump_directory }}/{{ mysql_mysql
 mysql_mysqldump_fullpath_ringbuffer: "{{ mysql_mysqldump_directory_ringbuffer }}/{{ mysql_mysqldump_shellscript_ringbuffer }}"
 mysql_mysqldump_cronjob_alldbs_create: False
 mysql_mysqldump_cronjob_ringbuffer_create: True
-mysql_mysqldump_cronjob_alldbs_dest: "/etc/cron.daily/mysql_mysqldump_alldbs"
+mysql_mysqldump_cronjob_alldbs_dest: "/etc/cron.d/mysql_mysqldump_alldbs"
 mysql_mysqldump_cronjob_alldbs_template: "mysqldump_cronjob_alldbs.j2"
 mysql_mysqldump_cronjob_ringbuffer_dest: "/etc/cron.daily/mysql_mysqldump_ringbuffer"
 mysql_mysqldump_cronjob_ringbuffer_template: "mysqldump_cronjob_ringbuffer.j2"
@@ -22,3 +22,8 @@ mysql_mysqldump_backup_cred_file: "{{ mysql_mysqldump_directory }}/backup_my.cnf
 mysql_mysqldump_backup_cred_file_overwrite: False
 mysql_mysqldump_ringbuffer_retention_days: 10
 mysql_mysqldump_fail_if_mycnf_file_missing: False
+mysql_mysqldump_connect_method: socket
+# if mysql_mysqldump_connect_method: tcp
+# mysql_mysqldump_connect_ip: "127.0.0.1"
+# mysql_mysqldump_connect_ip: localhost
+mysql_mysqldump_connect_port: 3306

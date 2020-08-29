@@ -71,18 +71,41 @@
     - ringbuffer
     - user
 
-  - name: Create MySQL backup user
+  - name: Create MySQL backup user (socket)
     # needs python-mysqldb or python3-mysqldb
     mysql_user:
-      config_file: "{{ mysql_mycnf_file }}"
       name: "{{ mysql_mysqldump_user_name }}"
-      host: "localhost"
       password: "{{ mysql_mysqldump_user_password }}"
+      check_implicit_admin: true
       priv: "*.*:SELECT,FILE,LOCK TABLES"
       state: "present"
       append_privs: "yes"
       encrypted: "no"
-    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    when:
+    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    - mysql_mysqldump_connect_method == "socket"
+    no_log: true
+    tags:
+    - alldbs
+    - check
+    - ringbuffer
+    - user
+
+  - name: Create MySQL backup user (tcp mode)
+    # needs python-mysqldb or python3-mysqldb
+    mysql_user:
+      name: "{{ mysql_mysqldump_user_name }}"
+      password: "{{ mysql_mysqldump_user_password }}"
+      host: "{{ mysql_mysqldump_user_host }}"
+      login_host: "{{ mysql_mysqldump_connect_ip }}"
+      check_implicit_admin: true
+      priv: "*.*:SELECT,FILE,LOCK TABLES"
+      state: "present"
+      append_privs: "yes"
+      encrypted: "no"
+    when:
+    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    - mysql_mysqldump_connect_method == "tcp"
     no_log: true
     tags:
     - alldbs
@@ -187,11 +210,22 @@
     - cronjob
     - ringbuffer
 
-  - name: Check if credentials are working for mysqldump
-    command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" -hlocalhost -P3306 ping
+  - name: Check if credentials are working for mysqldump (socket)
+    command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" ping
     register: mysqladmin_output
     changed_when: False
-    check_mode: yes
+    when:
+    - mysql_mysqldump_connect_method == "socket"
+    tags:
+    - check
+    - user
+
+  - name: Check if credentials are working for mysqldump (tcp)
+    command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" -h"{{ mysql_mysqldump_connect_ip }}" -P"{{ mysql_mysqldump_connect_port }}" ping
+    register: mysqladmin_output
+    changed_when: False
+    when:
+    - mysql_mysqldump_connect_method == "tcp"
     tags:
     - check
     - user
