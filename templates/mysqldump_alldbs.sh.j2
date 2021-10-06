@@ -19,19 +19,19 @@ all_db_filename="{{ mysql_mysqldump_alldb_filename }}"
 {% if mysql_mysqldump_alldb_gzip %}
 
 {% if mysql_mysqldump_connect_method == "socket" %}
-mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases > "$target_path"/"$all_db_filename" 2> /dev/null
+mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases --protocol=socket |gzip > "$target_path"/"$all_db_filename".gz
 {% endif %}
 {% if mysql_mysqldump_connect_method == "tcp" %}
-mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases --protocol=TCP -h {{ mysql_mysqldump_connect_ip }} > "$target_path"/"$all_db_filename" 2> /dev/null
+mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases --protocol=TCP -h {{ mysql_mysqldump_connect_ip }} |gzip > "$target_path"/"$all_db_filename".gz
 {% endif %}
 
 {% else %}
 
 {% if mysql_mysqldump_connect_method == "socket" %}
-mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases --protocol=socket |gzip > "$target_path"/"$all_db_filename".gz
+mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases > "$target_path"/"$all_db_filename" 2> /dev/null
 {% endif %}
 {% if mysql_mysqldump_connect_method == "tcp" %}
-mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases --protocol=TCP -h {{ mysql_mysqldump_connect_ip }} |gzip > "$target_path"/"$all_db_filename".gz
+mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases --protocol=TCP -h {{ mysql_mysqldump_connect_ip }} > "$target_path"/"$all_db_filename" 2> /dev/null
 {% endif %}
 
 {% endif %}
