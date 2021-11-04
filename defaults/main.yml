@@ -5,6 +5,11 @@ mysql_mysqldump_user_name: "backup"
 mysql_mysqldump_directory: "/srv/sql-backup"
 mysql_mysqldump_alldb_gzip: False
 # mysql_mysqldump_alldb_filename: "sqldump_alldbs.sql.gz"
+
+# List of databases to exclude/skip from backup
+# separate with "|" (pipe symbol because regex), example: DB1|DB2|DB3
+mysql_mysqldump_exclude_databases: "performance_schema|information_schema"
+
 mysql_mysqldump_alldb_filename: "sqldump_alldbs.sql"
 mysql_mysqldump_directory_alldbs: "{{ mysql_mysqldump_directory }}"
 mysql_mysqldump_directory_ringbuffer: "{{ mysql_mysqldump_directory }}/ringbuffer"

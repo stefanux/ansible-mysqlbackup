@@ -7,6 +7,8 @@
 #user="backup"
 #password="secret"
 
+db_exclude="{{ mysql_mysqldump_exclude_databases }}"
+
 umask 077
 i=0
 e=0
@@ -26,7 +28,12 @@ for x in $(mysql --defaults-extra-file="$mysqldump_extra_file" --protocol=SOCKET
 {% if mysql_mysqldump_connect_method == "tcp" %}
 for x in $(mysql --defaults-extra-file="$mysqldump_extra_file" --protocol=TCP -h {{ mysql_mysqldump_connect_ip }} -Bse 'show databases'); do
 {% endif %}
-  # echo "dumping Database $x"
+  if [ $(echo $x | egrep $db_exclude) ]; then
+    # echo "skipping database $x"
+    continue
+  # else
+    # echo "dumping database $x"
+  fi
   # mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --add-drop-table $x > "$target_path"/DB-Backup-${datestring}-${x}.sql 2> /dev/null
   # gzipped:
   {% if mysql_mysqldump_connect_method == "socket" %}
