@@ -1,5 +1,5 @@
   - name: Determine MySQL/MariaDB Version
-    command: mysql --version
+    ansible.builtin.command: mysql --version
     register: mysql_version
     changed_when: false
     tags:
@@ -9,7 +9,7 @@
     - user
 
   - name: Check if mysql_mycnf_file file exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ mysql_mycnf_file }}"
     register: mysql_mycnf_file
     tags:
@@ -19,7 +19,7 @@
     - user
 
   - name: Fail if mysql_mycnf_file is missing
-    fail:
+    ansible.builtin.fail:
       msg: "Config {{ mysql_mycnf_file }} is missing. aborting."
     when:
     - not mysql_mycnf_file.stat.exists
@@ -31,7 +31,7 @@
     - user
 
   - name: Check if mysql_mysqldump_backup_cred_file file exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ mysql_mysqldump_backup_cred_file }}"
     register: mysql_mysqldump_backup_cred_file_exists
     tags:
@@ -41,7 +41,7 @@
     - user
 
   - name: Generate password
-    set_fact:
+    ansible.builtin.set_fact:
       mysql_mysqldump_user_password: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
     no_log: True
     when:
@@ -55,7 +55,7 @@
 
   # 2 tasks from geerlingguy.mysql
   - name: Determine required MySQL Python libraries.
-    set_fact:
+    ansible.builtin.set_fact:
       deb_mysql_python_package: "{% if 'python3' in ansible_python_interpreter|default('') %}python3-mysqldb{% else %}python-mysqldb{% endif %}"
     when:
     - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
@@ -67,7 +67,7 @@
     - user
 
   - name: Ensure MySQL Python libraries are installed.
-    apt: "name={{ deb_mysql_python_package }} state=present"
+    ansible.builtin.apt: "name={{ deb_mysql_python_package }} state=present"
     when:
     - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
     - not mysql_mysqldump_use_existing_user
@@ -79,7 +79,7 @@
 
   - name: Create MySQL backup user (socket)
     # needs python-mysqldb or python3-mysqldb
-    mysql_user:
+    community.mysql.mysql_user:
       name: "{{ mysql_mysqldump_user_name }}"
       password: "{{ mysql_mysqldump_user_password }}"
       check_implicit_admin: true
@@ -100,7 +100,7 @@
 
   - name: Create MySQL backup user (tcp mode)
     # needs python-mysqldb or python3-mysqldb
-    mysql_user:
+    community.mysql.mysql_user:
       name: "{{ mysql_mysqldump_user_name }}"
       password: "{{ mysql_mysqldump_user_password }}"
       host: "{{ mysql_mysqldump_user_host }}"
@@ -122,7 +122,7 @@
     - user
 
   - name: Create mysqldump directory if it does not exist
-    file:
+    ansible.builtin.file:
       path: "{{ mysql_mysqldump_directory }}"
       owner: "root"
       group: "root"
@@ -136,7 +136,7 @@
     - user
 
   - name: Create mysqldump directory if it does not exist (alldbs)
-    file:
+    ansible.builtin.file:
       path: "{{ mysql_mysqldump_directory_alldbs }}"
       owner: "root"
       group: "root"
@@ -148,7 +148,7 @@
     - scripts
 
   - name: Create mysqldump directory if it does not exist (ringbuffer)
-    file:
+    ansible.builtin.file:
       path: "{{ mysql_mysqldump_directory_ringbuffer }}"
       owner: "root"
       group: "root"
@@ -159,7 +159,7 @@
     - scripts
 
   - name: Copy mysql_mysqldump_backup_cred_file with credentials
-    template:
+    ansible.builtin.template:
       src: "mysqldump_my.cnf.j2"
       dest: "{{ mysql_mysqldump_backup_cred_file }}"
       owner: "root"
@@ -175,7 +175,7 @@
     - user
 
   - name: Copy mysqldump shellscript (all DBs)
-    template:
+    ansible.builtin.template:
       src: "mysqldump_alldbs.sh.j2"
       dest: "{{ mysql_mysqldump_fullpath_alldbs }}"
       owner: "root"
@@ -186,7 +186,7 @@
     - scripts
 
   - name: Copy mysqldump shellscript (ringbuffer)
-    template:
+    ansible.builtin.template:
       src: "mysqldump_alldbs_ringbuffer.sh.j2"
       dest: "{{ mysql_mysqldump_fullpath_ringbuffer }}"
       owner: "root"
@@ -197,7 +197,7 @@
     - scripts
 
   - name: Create mysqldump cronjob (all DBs)
-    template:
+    ansible.builtin.template:
       src: "{{ mysql_mysqldump_cronjob_alldbs_template }}"
       dest: "{{ mysql_mysqldump_cronjob_alldbs_dest }}"
       owner: "root"
@@ -209,7 +209,7 @@
     - cronjob
 
   - name: Create mysqldump cronjob (ringbuffer)
-    template:
+    ansible.builtin.template:
       src: "{{ mysql_mysqldump_cronjob_ringbuffer_template }}"
       dest: "{{ mysql_mysqldump_cronjob_ringbuffer_dest }}"
       owner: "root"
@@ -221,7 +221,7 @@
     - ringbuffer
 
   - name: Check if credentials are working for mysqldump (socket)
-    command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" ping
+    ansible.builtin.command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" ping
     register: mysqladmin_output
     changed_when: False
     when:
@@ -231,7 +231,7 @@
     - user
 
   - name: Check if credentials are working for mysqldump (tcp)
-    command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" -h"{{ mysql_mysqldump_connect_ip }}" -P"{{ mysql_mysqldump_connect_port }}" ping
+    ansible.builtin.command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" -h"{{ mysql_mysqldump_connect_ip }}" -P"{{ mysql_mysqldump_connect_port }}" ping
     register: mysqladmin_output
     changed_when: False
     when:
@@ -241,7 +241,7 @@
     - user
 
   - name: Check if credentials are working for mysqldump (output)
-    debug: msg="{{ mysql_version }} status is {{ mysqladmin_output }}"
+    ansible.builtin.debug: msg="{{ mysql_version }} status is {{ mysqladmin_output }}"
     # should be "mysqld is alive"
     tags:
     - check
