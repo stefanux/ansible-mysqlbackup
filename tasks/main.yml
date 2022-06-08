@@ -44,7 +44,9 @@
     set_fact:
       mysql_mysqldump_user_password: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
     no_log: True
-    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    when:
+    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    - not mysql_mysqldump_use_existing_user
     tags:
     - alldbs
     - check
@@ -55,7 +57,9 @@
   - name: Determine required MySQL Python libraries.
     set_fact:
       deb_mysql_python_package: "{% if 'python3' in ansible_python_interpreter|default('') %}python3-mysqldb{% else %}python-mysqldb{% endif %}"
-    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    when:
+    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    - not mysql_mysqldump_use_existing_user
     tags:
     - alldbs
     - check
@@ -64,7 +68,9 @@
 
   - name: Ensure MySQL Python libraries are installed.
     apt: "name={{ deb_mysql_python_package }} state=present"
-    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    when:
+    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    - not mysql_mysqldump_use_existing_user
     tags:
     - alldbs
     - check
@@ -84,6 +90,7 @@
     when:
     - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
     - mysql_mysqldump_connect_method == "socket"
+    - not mysql_mysqldump_use_existing_user
     no_log: true
     tags:
     - alldbs
@@ -106,6 +113,7 @@
     when:
     - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
     - mysql_mysqldump_connect_method == "tcp"
+    - not mysql_mysqldump_use_existing_user
     no_log: true
     tags:
     - alldbs
@@ -157,7 +165,9 @@
       owner: "root"
       group: "root"
       mode: '0600'
-    when: not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    when:
+    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+    - not mysql_mysqldump_use_existing_user
     tags:
     - alldbs
     - check
@@ -236,4 +246,3 @@
     tags:
     - check
     - user
-

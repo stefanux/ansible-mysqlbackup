@@ -2,6 +2,11 @@
 mysql_mycnf_file: "/root/.my.cnf"
 mysql_mysqldump_user_name: "backup"
 # mysql_mysqldump_user_password: ""
+
+# set to True if you dont want to create a extra user but use the creditials in the .my.cnf-file
+# (or override "mysql_mysqldump_backup_cred_file" with your own file):
+mysql_mysqldump_use_existing_user: False
+
 mysql_mysqldump_directory: "/srv/sql-backup"
 mysql_mysqldump_alldb_gzip: False
 # mysql_mysqldump_alldb_filename: "sqldump_alldbs.sql.gz"
