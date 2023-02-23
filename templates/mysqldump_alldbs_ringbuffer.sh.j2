@@ -24,7 +24,7 @@ datestring=$(date +%Y-%m-%d-%H:%M)
 
 # deleting sql-dumps older than x days:
 find "$target_path"/*.sql -mtime +{{ mysql_mysqldump_ringbuffer_retention_days }} -exec rm {} \; 2> /dev/null
-find "$target_path"/*.sql.gz -mtime +10 -exec rm {} \; 2> /dev/null
+find "$target_path"/*.sql.gz -mtime +{{ mysql_mysqldump_ringbuffer_retention_days }} -exec rm {} \; 2> /dev/null
 
 {% if mysql_mysqldump_connect_method == "socket" %}
 for x in $(mysql --defaults-extra-file="$mysqldump_extra_file" --protocol=SOCKET -Bse 'show databases'); do
