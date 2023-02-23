@@ -16,8 +16,11 @@ mysqldump_extra_file="{{ mysql_mysqldump_backup_cred_file }}"
 target_path="{{ mysql_mysqldump_directory_alldbs }}"
 all_db_filename="{{ mysql_mysqldump_alldb_filename }}"
 
-{% if mysql_mysqldump_alldb_gzip %}
+{% if mysql_mysqldump_sleep_time is defined %}
+sleep {{ mysql_mysqldump_sleep_time }}
+{% endif %}
 
+{% if mysql_mysqldump_alldb_gzip %}
 {% if mysql_mysqldump_connect_method == "socket" %}
 mysqldump --defaults-extra-file="$mysqldump_extra_file" --single-transaction --all-databases --protocol=socket |gzip > "$target_path"/"$all_db_filename".gz
 {% endif %}

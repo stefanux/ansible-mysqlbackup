@@ -16,6 +16,10 @@ e=0
 mysqldump_extra_file="{{ mysql_mysqldump_backup_cred_file }}"
 target_path="{{ mysql_mysqldump_directory_ringbuffer }}"
 
+{% if mysql_mysqldump_sleep_time is defined %}
+sleep {{ mysql_mysqldump_sleep_time }}
+{% endif %}
+
 datestring=$(date +%Y-%m-%d-%H:%M)
 
 # deleting sql-dumps older than x days:

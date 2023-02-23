@@ -165,6 +165,7 @@
       owner: "root"
       group: "root"
       mode: '0600'
+    no_log: true
     when:
     - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
     - not mysql_mysqldump_use_existing_user

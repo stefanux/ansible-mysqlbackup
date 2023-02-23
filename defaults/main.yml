@@ -37,3 +37,7 @@ mysql_mysqldump_connect_method: socket
 # mysql_mysqldump_connect_ip: "127.0.0.1"
 # mysql_mysqldump_connect_ip: localhost
 mysql_mysqldump_connect_port: 3306
+
+# optional: define sleep time to avoid I/O overload, example:
+# default: seconds SUFFIX may be 's' for seconds (the default), 'm' for minutes, 'h' for hours or 'd' for days
+# mysql_mysqldump_sleep_time: "30s"
