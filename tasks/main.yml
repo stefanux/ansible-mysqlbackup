@@ -1,4 +1,16 @@
 ---
+# Read distro specific vars, dont put vars here which the user overrides since include_vars has a high precedence
+- name: Include OS-family specific variables
+  ansible.builtin.include_vars: "vars-{{ ansible_os_family }}.yml"
+  tags:
+    - always
+
+- name: Include distribution version specific variables (if present)
+  ansible.builtin.include_vars: "vars-{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+  failed_when: false
+  tags:
+    - always
+
 - name: Determine MySQL/MariaDB Version
   ansible.builtin.command: mysql --version
   register: mysql_version
@@ -57,7 +69,7 @@
 - name: Ensure MySQL Python libraries are installed
   ansible.builtin.package:
     name: "{{ mysql_python_package }}"
-    state: present"
+    state: present
   when:
     - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
     - not mysql_mysqldump_use_existing_user
