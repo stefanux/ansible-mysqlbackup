@@ -3,79 +3,79 @@
     register: mysql_version
     changed_when: false
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Check if mysql_mycnf_file file exists
     ansible.builtin.stat:
       path: "{{ mysql_mycnf_file }}"
     register: mysql_mycnf_file
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Fail if mysql_mycnf_file is missing
     ansible.builtin.fail:
       msg: "Config {{ mysql_mycnf_file }} is missing. aborting."
     when:
-    - not mysql_mycnf_file.stat.exists
-    - mysql_mysqldump_fail_if_mycnf_file_missing
+      - not mysql_mycnf_file.stat.exists
+      - mysql_mysqldump_fail_if_mycnf_file_missing
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Check if mysql_mysqldump_backup_cred_file file exists
     ansible.builtin.stat:
       path: "{{ mysql_mysqldump_backup_cred_file }}"
     register: mysql_mysqldump_backup_cred_file_exists
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Generate password
     ansible.builtin.set_fact:
       mysql_mysqldump_user_password: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
     no_log: True
     when:
-    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
-    - not mysql_mysqldump_use_existing_user
+      - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+      - not mysql_mysqldump_use_existing_user
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   # 2 tasks from geerlingguy.mysql
   - name: Determine required MySQL Python libraries.
     ansible.builtin.set_fact:
       deb_mysql_python_package: "{% if 'python3' in ansible_python_interpreter|default('') %}python3-mysqldb{% else %}python-mysqldb{% endif %}"
     when:
-    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
-    - not mysql_mysqldump_use_existing_user
+      - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+      - not mysql_mysqldump_use_existing_user
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Ensure MySQL Python libraries are installed.
     ansible.builtin.apt: "name={{ deb_mysql_python_package }} state=present"
     when:
-    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
-    - not mysql_mysqldump_use_existing_user
+      - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+      - not mysql_mysqldump_use_existing_user
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Create MySQL backup user (socket)
     # needs python-mysqldb or python3-mysqldb
@@ -88,15 +88,15 @@
       append_privs: "yes"
       encrypted: "no"
     when:
-    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
-    - mysql_mysqldump_connect_method == "socket"
-    - not mysql_mysqldump_use_existing_user
+      - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+      - mysql_mysqldump_connect_method == "socket"
+      - not mysql_mysqldump_use_existing_user
     no_log: true
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Create MySQL backup user (tcp mode)
     # needs python-mysqldb or python3-mysqldb
@@ -111,15 +111,15 @@
       append_privs: "yes"
       encrypted: "no"
     when:
-    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
-    - mysql_mysqldump_connect_method == "tcp"
-    - not mysql_mysqldump_use_existing_user
+      - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+      - mysql_mysqldump_connect_method == "tcp"
+      - not mysql_mysqldump_use_existing_user
     no_log: true
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Create mysqldump directory if it does not exist
     ansible.builtin.file:
@@ -129,11 +129,11 @@
       state: directory
       mode: '0700'
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - scripts
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - scripts
+      - user
 
   - name: Create mysqldump directory if it does not exist (alldbs)
     ansible.builtin.file:
@@ -143,9 +143,9 @@
       state: directory
       mode: '0700'
     tags:
-    - alldbs
-    - check
-    - scripts
+      - alldbs
+      - check
+      - scripts
 
   - name: Create mysqldump directory if it does not exist (ringbuffer)
     ansible.builtin.file:
@@ -155,8 +155,8 @@
       state: directory
       mode: '0700'
     tags:
-    - ringbuffer
-    - scripts
+      - ringbuffer
+      - scripts
 
   - name: Copy mysql_mysqldump_backup_cred_file with credentials
     ansible.builtin.template:
@@ -167,13 +167,13 @@
       mode: '0600'
     no_log: true
     when:
-    - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
-    - not mysql_mysqldump_use_existing_user
+      - not mysql_mysqldump_backup_cred_file_exists.stat.exists or mysql_mysqldump_backup_cred_file_overwrite
+      - not mysql_mysqldump_use_existing_user
     tags:
-    - alldbs
-    - check
-    - ringbuffer
-    - user
+      - alldbs
+      - check
+      - ringbuffer
+      - user
 
   - name: Copy mysqldump shellscript (all DBs)
     ansible.builtin.template:
@@ -183,8 +183,8 @@
       group: "root"
       mode: '0700'
     tags:
-    - alldbs
-    - scripts
+      - alldbs
+      - scripts
 
   - name: Copy mysqldump shellscript (ringbuffer)
     ansible.builtin.template:
@@ -194,8 +194,8 @@
       group: "root"
       mode: '0700'
     tags:
-    - alldbs
-    - scripts
+      - alldbs
+      - scripts
 
   - name: Create mysqldump cronjob (all DBs)
     ansible.builtin.template:
@@ -206,8 +206,8 @@
       mode: '0755'
     when: mysql_mysqldump_cronjob_alldbs_create
     tags:
-    - alldbs
-    - cronjob
+      - alldbs
+      - cronjob
 
   - name: Create mysqldump cronjob (ringbuffer)
     ansible.builtin.template:
@@ -218,32 +218,36 @@
       mode: '0755'
     when: mysql_mysqldump_cronjob_ringbuffer_create
     tags:
-    - cronjob
-    - ringbuffer
+      - cronjob
+      - ringbuffer
 
   - name: Check if credentials are working for mysqldump (socket)
     ansible.builtin.command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" ping
     register: mysqladmin_output
-    changed_when: False
+    check_mode: false
+    changed_when: false
     when:
-    - mysql_mysqldump_connect_method == "socket"
+      - mysql_mysqldump_connect_method == "socket"
     tags:
-    - check
-    - user
+      - check
+      - user
 
   - name: Check if credentials are working for mysqldump (tcp)
     ansible.builtin.command: mysqladmin --defaults-file="{{ mysql_mysqldump_backup_cred_file }}" -h"{{ mysql_mysqldump_connect_ip }}" -P"{{ mysql_mysqldump_connect_port }}" ping
     register: mysqladmin_output
-    changed_when: False
+    check_mode: false
+    changed_when: false
     when:
-    - mysql_mysqldump_connect_method == "tcp"
+      - mysql_mysqldump_connect_method == "tcp"
     tags:
-    - check
-    - user
+      - check
+      - user
 
   - name: Check if credentials are working for mysqldump (output)
     ansible.builtin.debug: msg="{{ mysql_version }} status is {{ mysqladmin_output }}"
     # should be "mysqld is alive"
+    check_mode: false
+    changed_when: false
     tags:
-    - check
-    - user
+      - check
+      - user
